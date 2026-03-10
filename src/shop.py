@@ -23,3 +23,4 @@ class Category:
         Category.category_count += 1  # Увеличили счётчик категорий
         for _ in products:  # Увеличили счётчик товаров
             Category.product_count += _
+
