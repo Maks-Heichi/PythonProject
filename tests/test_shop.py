@@ -25,3 +25,4 @@ def test_category_initialization():
     assert len(category.products) == 2
     assert Category.category_count == 1
     assert Category.product_count == 12
+
