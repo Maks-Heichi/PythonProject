@@ -68,6 +68,24 @@ def test_category_products_private():
         _ = category.__products
 
 
+def test_product_add():
+    product_a = Product("Товар A", "Описание", 100.0, 10)
+    product_b = Product("Товар B", "Описание", 200.0, 2)
+    assert product_a + product_b == 100.0 * 10 + 200.0 * 2
+
+
+def test_product_str():
+    product = Product("Товар", "Описание", 80.0, 15)
+    assert str(product) == "Товар, 80.0 руб. Остаток: 15 шт."
+
+
+def test_category_str():
+    product1 = Product("Товар 1", "Описание", 50.0, 10)
+    product2 = Product("Товар 2", "Описание", 100.0, 5)
+    category = Category("Категория", "Описание", [product1, product2])
+    assert str(category) == "Категория, количество продуктов: 15 шт."
+
+
 def test_product_price_getter():
     product = Product("Товар", "Описание", 500.0, 1)
     assert product.price == 500.0
