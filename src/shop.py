@@ -42,7 +42,45 @@ class Product:
     def __add__(self, other):
         if not isinstance(other, Product):
             return NotImplemented
+        if type(self) is not type(other):
+            raise TypeError("Можно складывать только продукты одного класса")
         return self.price * self.quantity + other.price * other.quantity
+
+
+class Smartphone(Product):
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        price: float,
+        quantity: int,
+        efficiency: float,
+        model: str,
+        memory: int,
+        color: str,
+    ):
+        super().__init__(name, description, price, quantity)
+        self.efficiency = efficiency
+        self.model = model
+        self.memory = memory
+        self.color = color
+
+
+class LawnGrass(Product):
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        price: float,
+        quantity: int,
+        country: str,
+        germination_period: int,
+        color: str,
+    ):
+        super().__init__(name, description, price, quantity)
+        self.country = country
+        self.germination_period = germination_period
+        self.color = color
 
 
 class Category:
@@ -61,6 +99,8 @@ class Category:
         return f"{self.name}, количество продуктов: {total_quantity} шт."
 
     def add_product(self, product):
+        if not isinstance(product, Product):
+            raise TypeError("В категорию можно добавлять только продукты")
         self.__products.append(product)
         Category.product_count += 1
 
