@@ -6,7 +6,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.shop import Category, Product
+from src.shop import Category, LawnGrass, Product, Smartphone
 
 
 @pytest.fixture(autouse=True)
@@ -19,9 +19,7 @@ def reset_category_counts():
 
 
 def test_product_initialization():
-    product = Product(
-        "iPhone 14 Pro Max", "6.7-дюймовый экран, 1TB памяти", 120000.0, 10
-    )
+    product = Product("iPhone 14 Pro Max", "6.7-дюймовый экран, 1TB памяти", 120000.0, 10)
     assert product.name == "iPhone 14 Pro Max"
     assert product.description == "6.7-дюймовый экран, 1TB памяти"
     assert product.price == 120000.0
@@ -29,12 +27,8 @@ def test_product_initialization():
 
 
 def test_category_initialization():
-    product1 = Product(
-        "Galaxy Z Fold 4", "Развертываемый смартфон с гибким дисплеем", 150000.0, 7
-    )
-    product2 = Product(
-        "Huawei Mate Xs 2", "Складной телефон премиум-класса", 130000.0, 5
-    )
+    product1 = Product("Galaxy Z Fold 4", "Развертываемый смартфон с гибким дисплеем", 150000.0, 7)
+    product2 = Product("Huawei Mate Xs 2", "Складной телефон премиум-класса", 130000.0, 5)
     category = Category("Смартфоны", "Лучшие смартфоны рынка", [product1, product2])
     assert category.name == "Смартфоны"
     assert Category.category_count == 1
@@ -50,6 +44,17 @@ def test_category_add_product():
     category.add_product(product2)
     assert Category.product_count == 2
     assert "Товар 2, 200.0 руб. Остаток: 5 шт." in category.products
+
+
+def test_category_add_product_rejects_non_product():
+    product = Product("Товар 1", "Описание 1", 100.0, 10)
+    category = Category("Категория", "Описание", [product])
+    assert Category.product_count == 1
+
+    with pytest.raises(TypeError):
+        category.add_product("не продукт")
+
+    assert Category.product_count == 1
 
 
 def test_category_products_property():
@@ -72,6 +77,56 @@ def test_product_add():
     product_a = Product("Товар A", "Описание", 100.0, 10)
     product_b = Product("Товар B", "Описание", 200.0, 2)
     assert product_a + product_b == 100.0 * 10 + 200.0 * 2
+
+
+def test_product_add_rejects_different_product_classes():
+    smartphone = Smartphone(
+        name="iPhone 15",
+        description="512GB, Gray space",
+        price=210000.0,
+        quantity=1,
+        efficiency=9.5,
+        model="A3102",
+        memory=512,
+        color="серый",
+    )
+    grass = LawnGrass(
+        name="Трава",
+        description="Газонная трава",
+        price=500.0,
+        quantity=2,
+        country="RU",
+        germination_period=14,
+        color="зеленый",
+    )
+
+    with pytest.raises(TypeError):
+        _ = smartphone + grass
+
+
+def test_product_add_allows_same_product_class():
+    smartphone_a = Smartphone(
+        name="iPhone 15",
+        description="512GB, Gray space",
+        price=210000.0,
+        quantity=1,
+        efficiency=9.5,
+        model="A3102",
+        memory=512,
+        color="серый",
+    )
+    smartphone_b = Smartphone(
+        name="Samsung Galaxy S23 Ultra",
+        description="256GB, Серый цвет",
+        price=180000.0,
+        quantity=2,
+        efficiency=9.0,
+        model="SM-S918B",
+        memory=256,
+        color="серый",
+    )
+
+    assert smartphone_a + smartphone_b == 210000.0 * 1 + 180000.0 * 2
 
 
 def test_product_str():
