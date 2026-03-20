@@ -1,4 +1,4 @@
-from src.shop import Category, Product
+from src.shop import Category, Order, Product
 
 if __name__ == "__main__":
     product1 = Product(
@@ -48,3 +48,8 @@ if __name__ == "__main__":
 
     print(Category.category_count)
     print(Category.product_count)
+
+    # Демонстрация класса Order (Заказ)
+    order = Order(product1, 2)
+    print(order)
+    print(f"Итого к оплате: {order.total_cost} руб.")
