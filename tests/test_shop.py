@@ -6,7 +6,16 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.shop import Category, LawnGrass, Product, Smartphone
+from src.shop import (
+    BaseProduct,
+    BaseProductEntity,
+    Category,
+    LawnGrass,
+    Order,
+    Product,
+    ReprMixin,
+    Smartphone,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -222,3 +231,180 @@ def test_new_product_duplicate_lower_price():
     assert result is existing
     assert result.quantity == 15
     assert result.price == 800.0
+
+
+def test_product_inherits_from_base_product():
+    """Product является наследником BaseProduct."""
+    product = Product("Товар", "Описание", 100.0, 1)
+    assert isinstance(product, BaseProduct)
+
+
+def test_smartphone_inherits_from_product_and_base_product():
+    """Smartphone наследует от Product (и тем самым от BaseProduct)."""
+    smartphone = Smartphone(
+        name="iPhone",
+        description="Описание",
+        price=100000.0,
+        quantity=1,
+        efficiency=9.0,
+        model="A15",
+        memory=256,
+        color="черный",
+    )
+    assert isinstance(smartphone, Product)
+    assert isinstance(smartphone, BaseProduct)
+
+
+def test_lawn_grass_inherits_from_product_and_base_product():
+    """LawnGrass наследует от Product (и тем самым от BaseProduct)."""
+    grass = LawnGrass(
+        name="Трава",
+        description="Газонная",
+        price=500.0,
+        quantity=2,
+        country="RU",
+        germination_period=14,
+        color="зеленый",
+    )
+    assert isinstance(grass, Product)
+    assert isinstance(grass, BaseProduct)
+
+
+def test_repr_mixin_prints_on_product_creation(capsys):
+    """Миксин печатает информацию при создании Product."""
+    Product("Продукт1", "Описание продукта", 1200, 10)
+    captured = capsys.readouterr()
+    assert "Product(" in captured.out
+    assert "'Продукт1'" in captured.out
+    assert "'Описание продукта'" in captured.out
+    assert "1200" in captured.out
+    assert "10" in captured.out
+
+
+def test_repr_mixin_prints_on_smartphone_creation(capsys):
+    """Миксин печатает информацию при создании Smartphone."""
+    Smartphone(
+        name="iPhone 15",
+        description="512GB",
+        price=210000.0,
+        quantity=1,
+        efficiency=9.5,
+        model="A3102",
+        memory=512,
+        color="серый",
+    )
+    captured = capsys.readouterr()
+    assert "Smartphone(" in captured.out
+    assert "iPhone 15" in captured.out
+
+
+def test_repr_mixin_prints_on_lawn_grass_creation(capsys):
+    """Миксин печатает информацию при создании LawnGrass."""
+    LawnGrass(
+        name="Трава",
+        description="Газонная",
+        price=500.0,
+        quantity=2,
+        country="RU",
+        germination_period=14,
+        color="зеленый",
+    )
+    captured = capsys.readouterr()
+    assert "LawnGrass(" in captured.out
+    assert "Трава" in captured.out
+
+
+def test_product_has_repr_mixin_in_chain():
+    """Product использует ReprMixin в цепочке наследования."""
+    assert ReprMixin in Product.__mro__
+
+
+def test_base_product_is_abstract():
+    """BaseProduct нельзя инстанцировать напрямую (абстрактный класс)."""
+    with pytest.raises(TypeError):
+        BaseProduct("Товар", "Описание", 100.0, 1)
+
+
+# --- Тесты для класса Order и BaseProductEntity ---
+
+
+def test_order_creation():
+    """Заказ создаётся с продуктом, количеством и итоговой стоимостью."""
+    product = Product("Товар", "Описание", 100.0, 10)
+    order = Order(product, 3)
+    assert order.product is product
+    assert order.quantity == 3
+    assert order.total_cost == 300.0
+
+
+def test_order_total_cost():
+    """Итоговая стоимость заказа = цена * количество."""
+    product = Product("Телефон", "Описание", 50000.0, 5)
+    order = Order(product, 2)
+    assert order.total_cost == 100000.0
+
+
+def test_order_str():
+    """Строковое представление заказа."""
+    product = Product("Товар", "Описание", 100.0, 10)
+    order = Order(product, 2)
+    assert "Заказ: Товар" in str(order)
+    assert "2" in str(order)
+    assert "200.0" in str(order)
+
+
+def test_order_rejects_non_product():
+    """Заказ принимает только продукт."""
+    with pytest.raises(TypeError):
+        Order("не продукт", 1)
+
+
+def test_order_rejects_zero_quantity():
+    """Количество в заказе должно быть положительным."""
+    product = Product("Товар", "Описание", 100.0, 10)
+    with pytest.raises(ValueError):
+        Order(product, 0)
+
+
+def test_order_rejects_negative_quantity():
+    """Количество в заказе должно быть положительным."""
+    product = Product("Товар", "Описание", 100.0, 10)
+    with pytest.raises(ValueError):
+        Order(product, -1)
+
+
+def test_order_inherits_from_base_product_entity():
+    """Order наследует от BaseProductEntity."""
+    product = Product("Товар", "Описание", 100.0, 10)
+    order = Order(product, 1)
+    assert isinstance(order, BaseProductEntity)
+
+
+def test_category_inherits_from_base_product_entity():
+    """Category наследует от BaseProductEntity."""
+    product = Product("Товар", "Описание", 100.0, 1)
+    category = Category("Категория", "Описание", [product])
+    assert isinstance(category, BaseProductEntity)
+
+
+def test_base_product_entity_is_abstract():
+    """BaseProductEntity нельзя инстанцировать напрямую."""
+    with pytest.raises(TypeError):
+        BaseProductEntity()
+
+
+def test_order_with_smartphone():
+    """Заказ можно создать с товаром-смартфоном."""
+    smartphone = Smartphone(
+        name="iPhone",
+        description="Описание",
+        price=100000.0,
+        quantity=5,
+        efficiency=9.0,
+        model="A15",
+        memory=256,
+        color="черный",
+    )
+    order = Order(smartphone, 2)
+    assert order.total_cost == 200000.0
+    assert order.product is smartphone
