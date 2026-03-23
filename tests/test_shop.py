@@ -6,7 +6,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.shop import (
+from src.shop import (  # noqa: E402
     BaseProduct,
     BaseProductEntity,
     Category,
@@ -323,6 +323,46 @@ def test_base_product_is_abstract():
     """BaseProduct нельзя инстанцировать напрямую (абстрактный класс)."""
     with pytest.raises(TypeError):
         BaseProduct("Товар", "Описание", 100.0, 1)
+
+
+def test_product_rejects_zero_quantity():
+    """Товар с нулевым количеством не может быть создан."""
+    with pytest.raises(ValueError, match="Товар с нулевым количеством не может быть добавлен"):
+        Product("Товар", "Описание", 100.0, 0)
+
+
+def test_category_average_price():
+    """Средний ценник = сумма цен / количество товаров."""
+    product1 = Product("Товар 1", "Описание", 100.0, 10)
+    product2 = Product("Товар 2", "Описание", 200.0, 5)
+    product3 = Product("Товар 3", "Описание", 300.0, 3)
+    category = Category("Категория", "Описание", [product1, product2, product3])
+    assert category.average_price() == 200.0  # (100 + 200 + 300) / 3
+
+
+def test_category_average_price_empty():
+    """Пустая категория возвращает 0."""
+    category = Category("Пустая", "Описание", [])
+    assert category.average_price() == 0
+
+
+def test_category_average_price_single_product():
+    """Категория с одним товаром — средняя цена = цена товара."""
+    product = Product("Товар", "Описание", 500.0, 1)
+    category = Category("Категория", "Описание", [product])
+    assert category.average_price() == 500.0
+
+
+def test_new_product_rejects_zero_quantity():
+    """new_product с нулевым количеством выбрасывает ValueError."""
+    product_data = {
+        "name": "Товар",
+        "description": "Описание",
+        "price": 100.0,
+        "quantity": 0,
+    }
+    with pytest.raises(ValueError, match="Товар с нулевым количеством не может быть добавлен"):
+        Product.new_product(product_data)
 
 
 # --- Тесты для класса Order и BaseProductEntity ---
