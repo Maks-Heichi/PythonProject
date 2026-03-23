@@ -11,22 +11,31 @@ class ReprMixin:
             print(f"{type(self).__name__}({args_repr}, {kwargs_repr})")
         else:
             print(f"{type(self).__name__}({args_repr})")
-        super().__init__(*args, **kwargs)
+        super().__init__()
 
 
 class BaseProduct(ABC):
-    """Базовый абстрактный класс для всех продуктов."""
+    """Базовый абстрактный класс для всех продуктов.
+    Содержит только абстрактные методы. Инициализация — в наследниках.
+    """
 
     @abstractmethod
     def __str__(self) -> str:
         """Строковое представление продукта."""
         pass
 
+
+class Product(ReprMixin, BaseProduct):
+    """Класс продукта."""
+
     def __init__(self, name: str, description: str, price: float, quantity: int):
+        if quantity == 0:
+            raise ValueError("Товар с нулевым количеством не может быть добавлен")
         self.name = name
         self.description = description
         self.__price = price
         self.quantity = quantity
+        super().__init__(name, description, price, quantity)
 
     @property
     def price(self):
@@ -49,13 +58,6 @@ class BaseProduct(ABC):
         if type(self) is not type(other):
             raise TypeError("Можно складывать только продукты одного класса")
         return self.price * self.quantity + other.price * other.quantity
-
-
-class Product(ReprMixin, BaseProduct):
-    """Класс продукта."""
-
-    def __init__(self, name: str, description: str, price: float, quantity: int):
-        super().__init__(name, description, price, quantity)
 
     def __str__(self) -> str:
         return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт."
@@ -197,3 +199,11 @@ class Category(BaseProductEntity):
         for product in self.__products:
             result += f"{product}\n"
         return result
+
+    def average_price(self) -> float:
+        """Подсчёт среднего ценника всех товаров в категории."""
+        try:
+            total = sum(product.price for product in self.__products)
+            return total / len(self.__products)
+        except ZeroDivisionError:
+            return 0
